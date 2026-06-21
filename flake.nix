@@ -48,7 +48,11 @@
 
       customNeovim = pkgs.neovim.override {
         configure = {
-          customRC = builtins.readFile ./init.lua;
+	  customRC = ''
+            lua << EOF
+            ${builtins.readFile ./init.lua}
+            EOF
+          '';
           packages.myPlugins.start = plugins;
         };
       };
