@@ -19,9 +19,15 @@ vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>")
 -- =========================
 -- TREESITTER
 -- =========================
-require("nvim-treesitter.configs").setup({
-  ensure_installed = {},  -- parsers are provided by Nix already
-  highlight = { enable = true },
+require("nvim-treesitter").setup()
+
+local ts_langs = { "c", "cpp", "python", "bash", "json", "yaml", "lua" }
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = ts_langs,
+  callback = function()
+    vim.treesitter.start()
+  end,
 })
 
 -- =========================
@@ -41,15 +47,18 @@ vim.keymap.set("n", "<leader>fb", require("telescope.builtin").buffers)
 -- =========================
 -- LSP CONFIG
 -- =========================
-local lspconfig = require("lspconfig")
-lspconfig.clangd.setup({})
-lspconfig.pyright.setup({})
-lspconfig.bashls.setup({})
-lspconfig.yamlls.setup({})
-lspconfig.lua_ls.setup({
+vim.lsp.config("lua_ls", {
   settings = {
     Lua = { diagnostics = { globals = { "vim" } } },
   },
+})
+
+vim.lsp.enable({
+  "clangd",
+  "pyright",
+  "bashls",
+  "yamlls",
+  "lua_ls",
 })
 
 vim.keymap.set("n", "gd", vim.lsp.buf.definition)

@@ -1,6 +1,6 @@
 {
   description = "Custom Neovim setup with Nix";
-
+           	
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
