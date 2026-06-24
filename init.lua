@@ -15,6 +15,13 @@ vim.cmd("colorscheme carbonfox")
 
 -- terminal escape
 vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>")
+vim.g.mapleader = " "
+
+-- d = delete (no yank), <leader>d = cut (goes to register)
+vim.keymap.set({"n","v"}, "d",           '"_d',          { desc = "Delete no yank" })
+vim.keymap.set("n",       "dd",          '"_dd',         { desc = "Delete line no yank" })
+vim.keymap.set({"n","v"}, "<leader>d",   '"+d',          { desc = "Cut to clipboard" })
+vim.keymap.set("n",       "<leader>dd",  '"+dd',         { desc = "Cut line to clipboard" })
 
 -- =========================
 -- TREESITTER
@@ -30,6 +37,9 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+-- key map page
+require("hk")
+
 -- =========================
 -- LUALINE
 -- =========================
@@ -40,9 +50,14 @@ require("lualine").setup()
 -- =========================
 local telescope = require("telescope")
 telescope.setup({})
-vim.keymap.set("n", "<leader>ff", require("telescope.builtin").find_files)
-vim.keymap.set("n", "<leader>fg", require("telescope.builtin").live_grep)
-vim.keymap.set("n", "<leader>fb", require("telescope.builtin").buffers)
+
+-- File/buffer navigation
+vim.keymap.set("n", "<leader>r",  ":Telescope oldfiles<CR>",          { desc = "Recent files" })
+vim.keymap.set("n", "<leader>b",  ":Telescope buffers<CR>",         { desc = "Buffers" })
+
+-- Telescope (already in your config, updated to use leader)
+vim.keymap.set("n", "<leader>ff", require("telescope.builtin").find_files,  { desc = "Find files" })
+vim.keymap.set("n", "<leader>fg", require("telescope.builtin").live_grep,   { desc = "Live grep" })
 
 -- =========================
 -- LSP CONFIG
@@ -92,4 +107,15 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   callback = function()
     vim.bo.filetype = "dts"
   end,
+})
+
+vim.api.nvim_create_autocmd({ 'BufEnter', 'TermEnter', 'TermLeave' }, {
+    desc = 'cd to terminal cwd on enter',
+    pattern = 'term://*',
+    callback = function()
+        local cwd = vim.fn.resolve('/proc/' .. vim.b.terminal_job_pid .. '/cwd')
+        if vim.fn.isdirectory(cwd) == 1 then
+            vim.fn.chdir(cwd)
+        end
+    end,
 })

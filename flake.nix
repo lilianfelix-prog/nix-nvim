@@ -11,6 +11,7 @@
       pkgs = import nixpkgs { inherit system; };
 
       plugins = with pkgs.vimPlugins; [
+        localPlugins
         nightfox-nvim
         nvim-lspconfig
         nvim-cmp
@@ -29,7 +30,6 @@
       ];
 
       extraPackages = with pkgs; [
-        gcc
         lazygit
         shellcheck
         xdg-utils
@@ -57,10 +57,25 @@
         };
       };
 
-      nvimEnv = pkgs.symlinkJoin {
-        name = "nvim-env";
-        paths = [ customNeovim ] ++ extraPackages;
-      };
+    nvimEnv = pkgs.symlinkJoin {
+        name = "nix-nvim";
+  	paths = [ customNeovim ];
+  	buildInputs = [ pkgs.makeWrapper ];
+  	postBuild = ''
+    	wrapProgram $out/bin/nvim \
+      	--prefix PATH : ${pkgs.lib.makeBinPath extraPackages}
+	'';
+    };
+
+    localPlugins = pkgs.stdenv.mkDerivation {
+        name = "local-nvim-plugins";
+        src = ./lua;
+        installPhase = ''
+        mkdir -p $out/lua
+        cp *.lua $out/lua/
+        '';
+    };
+
     in {
       packages.${system}.default = nvimEnv;
 
