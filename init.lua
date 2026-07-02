@@ -119,3 +119,54 @@ vim.api.nvim_create_autocmd({ 'BufEnter', 'TermEnter', 'TermLeave' }, {
         end
     end,
 })
+
+vim.api.nvim_create_autocmd({ "FileType" }, {
+  pattern = { "bitbake" },
+  callback = function(args)
+    vim.lsp.start({
+      name = "bitbake",
+      cmd = { "language-server-bitbake", "--stdio" },
+      root_dir = vim.fs.root(args.buf, { "bblayers.conf", ".git" }) or vim.fn.getcwd(),
+    })
+  end,
+})
+
+-- =========================
+-- oelint-adv with nvim-lint
+-- =========================
+local lint = require('lint')
+
+lint.linters.oelint_adv = {
+  cmd = 'oelint-adv',
+  stdin = false,
+  args = {
+    '--quiet',
+    '--messageformat={path}:{line}:{severity}:{id}:{msg}',
+  },
+  env = {
+    ["NO_COLOR"] = "1",
+    ["HOME"] = os.getenv("HOME"),
+  },
+  ignore_exitcode = true,
+  stream = 'stderr',
+  parser = require('lint.parser').from_pattern(
+    '([^:]+):(%d+):(%a+):([^:]+):(.+)',
+    { 'file', 'lnum', 'severity', 'code', 'message' },
+    {
+      ['error'] = vim.diagnostic.severity.ERROR,
+      ['warning'] = vim.diagnostic.severity.WARN,
+      ['info'] = vim.diagnostic.severity.INFO,
+    },
+    { ['source'] = 'oelint-adv' }
+  ),
+}
+
+lint.linters_by_ft = lint.linters_by_ft or {}
+lint.linters_by_ft.bitbake = { 'oelint_adv' }
+
+vim.api.nvim_create_autocmd({ "BufWritePost", "BufEnter", "InsertLeave" }, {
+  pattern = { "*.bb", "*.bbappend", "*.bbclass", "*.inc" },
+  callback = function()
+    lint.try_lint()
+  end,
+})

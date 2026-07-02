@@ -1,0 +1,14 @@
+{
+  "name": "language-server-bitbake",
+  "version": "2.9.0",
+  "license": "MIT",
+  "bin": {
+    "language-server-bitbake": "out/server.js"
+  },
+  "dependencies": {
+    "node-cache": "^5.1.2",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12",
+    "web-tree-sitter": "^0.24.6"
+  }
+}
